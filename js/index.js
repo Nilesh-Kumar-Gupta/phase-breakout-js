@@ -7,6 +7,9 @@ var game = new Phaser.Game(480, 320, Phaser.CANVAS, null, {
 
 var ball; 
 var paddle;
+var bricks;
+var newBrick;
+var brickInfo;
 
 
 function preload() {
@@ -17,6 +20,7 @@ function preload() {
 
     game.load.image('ball', 'img/ball.png');
     game.load.image('paddle', 'img/paddle.png');
+    game.load.image('brick', 'img/brick.png');
 };
 
 function create() {
@@ -32,11 +36,25 @@ function create() {
     game.physics.enable(ball, Phaser.Physics.ARCADE);
     game.physics.enable(paddle, Phaser.Physics.ARCADE);
 
+    game.physics.arcade.checkCollision.down = false;
     ball.body.collideWorldBounds = true;
+    ball.checkWorldBounds = true;
+
     ball.body.bounce.set(1);
+
+    ball.events.onOutOfBounds.add(function(){
+        alert('Game over!');
+        location.reload();
+    }, this);
 
     ball.body.velocity.set(150, -150);
     paddle.body.immovable = true;
+
+    // ball.events.onOutOfBounds.add(function() {
+    //     console.log("Hey Oh!");
+    //     // alert("Game Over!");
+    //     // location.reload();
+    // }, this)
 
 };
 
