@@ -1,8 +1,16 @@
-var game = new Phaser.Game(480, 320, Phaser.CANVAS, null, {
-  preload: preload,
-  create: create,
-  update: update,
-});
+var game = new Phaser.Game(
+  // window.innerWidth,
+  // window.innerHeight,
+  480,
+  320,
+  Phaser.CANVAS,
+  null,
+  {
+    preload: preload,
+    create: create,
+    update: update,
+  }
+);
 
 var ball;
 var paddle;
@@ -23,7 +31,7 @@ const textStyle = {
 };
 
 function preload() {
-  game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+  // game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
   game.scale.pageAlignHorizontally = true;
   game.scale.pageAlignVertically = true;
   game.stage.backgroundColor = "#eee";
@@ -76,7 +84,7 @@ function create() {
     "Lives: " + lives,
     textStyle
   );
-  livesText.anchor.set(1.0);
+  livesText.anchor.set(1, 0);
 
   lifeLostText = game.add.text(
     game.world.width * 0.5,
@@ -174,7 +182,6 @@ const ballHitPaddle = (ball, paddle) => {
 
 const ballLeaveScreen = () => {
   lives--;
-  console.log(lives);
   if (lives) {
     livesText.setText("Lives: " + lives);
     lifeLostText.visible = true;
