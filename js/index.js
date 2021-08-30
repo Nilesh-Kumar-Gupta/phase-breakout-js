@@ -9,6 +9,16 @@ var paddle;
 var bricks;
 var newBrick;
 var brickInfo;
+var scoreText;
+var score = 0;
+var lives = 3;
+var livesText;
+var lifeLostText;
+
+const textStyle = {
+  font: "18px Arial",
+  fill: "#0095DD",
+};
 
 function preload() {
   game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -49,13 +59,29 @@ function create() {
 
   ball.body.bounce.set(1);
 
-  ball.events.onOutOfBounds.add(function () {
-    alert("Game over!");
-    location.reload();
-  }, this);
+  ball.events.onOutOfBounds.add(ballLeaveScreen, this);
 
   ball.body.velocity.set(150, -150);
   paddle.body.immovable = true;
+
+  scoreText = game.add.text(5, 5, "Points: 0", textStyle);
+
+  livesText = game.add.text(
+    game.world.width - 5,
+    5,
+    "Lives: " + lives,
+    textStyle
+  );
+  livesText.anchor.set(1.0);
+
+  lifeLostText = game.add.text(
+    game.world.width * 0.5,
+    game.world.height * 0.5,
+    "Life Lost, Click to Continue",
+    textStyle
+  );
+  lifeLostText.anchor.set(0.5);
+  lifeLostText.visible = false;
 }
 
 function update() {
@@ -99,4 +125,35 @@ const initBricks = () => {
 
 const ballHitBrick = (ball, brick) => {
   brick.kill();
+  score += 10;
+  scoreText.setText("Points: " + score);
+
+  let count_alive = 0;
+  for (i = 0; i < bricks.children.length; i++) {
+    if (bricks.children[i].alive) count_alive++;
+  }
+
+  if (count_alive == 0) {
+    alert("You won the game, congratulations!");
+    location.reload();
+  }
+};
+
+const ballLeaveScreen = () => {
+  lives--;
+  console.log(lives);
+  if (lives) {
+    livesText.setText("Lives: " + lives);
+    lifeLostText.visible = true;
+    ball.reset(game.world.width * 0.5, game.world.height - 30);
+    paddle.reset(game.world.width * 0.5, game.world.height - 5);
+
+    game.input.onDown.addOnce(() => {
+      lifeLostText.visible = false;
+      ball.body.velocity.set(150, -150);
+    }, this);
+  } else {
+    alert("You lost, game over");
+    location.reload();
+  }
 };
