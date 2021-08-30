@@ -14,6 +14,8 @@ var score = 0;
 var lives = 3;
 var livesText;
 var lifeLostText;
+var playing = false;
+var startButton;
 
 const textStyle = {
   font: "18px Arial",
@@ -29,6 +31,8 @@ function preload() {
   game.load.image("ball", "img/ball.png");
   game.load.image("paddle", "img/paddle.png");
   game.load.image("brick", "img/brick.png");
+  game.load.spritesheet("ball", "img/wobble.png", 20, 20);
+  game.load.spritesheet("button", "img/button.png", 120, 40);
 }
 
 function create() {
@@ -39,6 +43,7 @@ function create() {
     game.world.height - 30,
     "ball"
   );
+  ball.animations.add("wobble", [0, 1, 0, 2, 0, 1, 0, 2, 0], 24);
   ball.anchor.set(0.5);
 
   paddle = game.add.sprite(
@@ -61,7 +66,6 @@ function create() {
 
   ball.events.onOutOfBounds.add(ballLeaveScreen, this);
 
-  ball.body.velocity.set(150, -150);
   paddle.body.immovable = true;
 
   scoreText = game.add.text(5, 5, "Points: 0", textStyle);
@@ -82,13 +86,31 @@ function create() {
   );
   lifeLostText.anchor.set(0.5);
   lifeLostText.visible = false;
+
+  startButton = game.add.button(
+    game.world.width * 0.5,
+    game.world.height * 0.5,
+    "button",
+    startGame,
+    this,
+    1,
+    0,
+    2
+  );
+  startButton.anchor.set(0.5);
 }
 
 function update() {
-  game.physics.arcade.collide(ball, paddle);
+  game.physics.arcade.collide(ball, paddle, ballHitPaddle);
   game.physics.arcade.collide(ball, bricks, ballHitBrick);
-  paddle.x = game.input.x || game.world.width * 0.5;
+  if (playing) paddle.x = game.input.x || game.world.width * 0.5;
 }
+
+const startGame = () => {
+  startButton.destroy();
+  ball.body.velocity.set(150, -150);
+  playing = true;
+};
 
 const initBricks = () => {
   brickInfo = {
@@ -124,19 +146,30 @@ const initBricks = () => {
 };
 
 const ballHitBrick = (ball, brick) => {
-  brick.kill();
-  score += 10;
-  scoreText.setText("Points: " + score);
+  const killTween = game.add.tween(brick.scale);
+  killTween.to({ x: 0, y: 0 }, 200, Phaser.Easing.Linear.None);
+  killTween.onComplete.addOnce(() => {
+    brick.kill();
 
-  let count_alive = 0;
-  for (i = 0; i < bricks.children.length; i++) {
-    if (bricks.children[i].alive) count_alive++;
-  }
+    score += 10;
+    scoreText.setText("Points: " + score);
 
-  if (count_alive == 0) {
-    alert("You won the game, congratulations!");
-    location.reload();
-  }
+    let count_alive = 0;
+    for (i = 0; i < bricks.children.length; i++) {
+      if (bricks.children[i].alive) count_alive++;
+    }
+
+    if (count_alive == 0) {
+      alert("You won the game, congratulations!");
+      location.reload();
+    }
+  }, this);
+  killTween.start();
+};
+
+const ballHitPaddle = (ball, paddle) => {
+  ball.animations.play("wobble");
+  ball.body.velocity.x = -1 * 5 * (paddle.x - ball.x);
 };
 
 const ballLeaveScreen = () => {
